@@ -38,7 +38,7 @@ def new_topic(request):
         form = TopicForm(data=request.POST)
         if form.is_valid():
             new_topic=form.save(commit=False)
-            new_topic.owner=request.owner
+            new_topic.owner=request.user
             new_topic.save()
             return redirect('learning_logs:topics')
 
@@ -64,11 +64,11 @@ def new_entry(request, topic_id):
             return redirect('learning_logs:topic', topic_id=topic_id)
 
 @login_required
-def edit_entry(requst,entry_id):
+def edit_entry(request,entry_id):
     """Edit an existing entry."""
     entry=Entry.objects.get(id=entry_id)
     topic=entry.topic
-    if topic.owner != request.owner:
+    if topic.owner != request.user:
         raise Http404
 
     if request.method!='POST':
