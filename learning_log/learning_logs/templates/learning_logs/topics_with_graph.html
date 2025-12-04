@@ -1,0 +1,19 @@
+
+{% extends 'learning_logs/base.html' %}
+
+{% block page_header %}
+<h2>Topics</h2>
+{% endblock page_header %}
+
+{% block content %}
+
+<ul>
+    {% for topic in topics %}
+    <li>{{topic.text}}</li>
+    {% endfor %}
+</ul>
+
+<h3>Entries per Topic</h3>
+<img src="data:image/png;base64,{{graph|safe}}" alt="Entries per Topic Graph">
+
+{% endblock content %}

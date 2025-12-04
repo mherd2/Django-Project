@@ -3,6 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from .models import Topic, Entry
 from .forms import TopicForm, EntryForm
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import os
+import base64
+from django.conf import settings
 
 def index(request):
     """The home page for Learning Log."""
@@ -62,6 +69,8 @@ def new_entry(request, topic_id):
             new_entry.topic=topic
             new_entry.save()
             return redirect('learning_logs:topic', topic_id=topic_id)
+    context = {'topic': topic, 'form': form}
+    return render(request, 'learning_logs/new_entry.html', context)
 
 @login_required
 def edit_entry(request,entry_id):
@@ -83,3 +92,24 @@ def edit_entry(request,entry_id):
     
     context = {'entry':entry,'topic':topic,'form':form}
     return render(request,'learning_logs/edit_entry.html',context)
+
+@login_required
+def topics_with_graph(request):
+    """Show the entry counts for each topic."""
+    topics=Topic.objects.all()
+    counts=[Entry.objects.filter(topic=topic).count() for topic in topics]
+    labels=[topic.text for topic in topics]
+
+    plt.figure(figsize=(8,5))
+    plt.bar(labels,counts,color='skyblue')
+    plt.xticks(rotation=45,ha='right')
+    plt.title('Number of Entries per Topic')
+    plt.tight_layout()
+
+    buf=io.BytesIO()
+    plt.savefig(buf,format='png')
+    plt.close()
+    buf.seek(0)
+    image_base64=base64.b64encode(buf.read()).decode('utf-8')
+
+    return render(request,'learning_logs/topics_with_graph.html', {'topics':topics, 'graph':image_base64})
